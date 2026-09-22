@@ -8,7 +8,7 @@
   <link rel="canonical" href="https://playscribbly.com/">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <meta name="theme-color" content="#d32f2f">
+  <meta name="theme-color" content="#e8344a">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Scribbly">
   <meta property="og:title" content="Scribbly: Draw &amp; Guess">
@@ -19,134 +19,564 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The Scribbly app icon: a smiling red character holding a pencil">
   <meta name="twitter:card" content="summary_large_image">
+  <link rel="preload" href="/fonts/nunito-900.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/img/shots/guessing.webp" as="image" type="image/webp">
+  <script>document.documentElement.classList.add('js')</script>
   <style>
+    @font-face { font-family: Nunito; font-weight: 600; font-display: swap; src: url(/fonts/nunito-600.woff2) format("woff2"); }
+    @font-face { font-family: Nunito; font-weight: 800; font-display: swap; src: url(/fonts/nunito-800.woff2) format("woff2"); }
+    @font-face { font-family: Nunito; font-weight: 900; font-display: swap; src: url(/fonts/nunito-900.woff2) format("woff2"); }
+
     :root {
-      --bg: #ffffff;
-      --surface: #f5f5f5;
-      --text: #1c1c22;
-      --muted: #5c5c68;
-      --accent: #d32f2f;
-      --accent-text: #ffffff;
-      --border: #e6e6ea;
+      --bg: #fffaf8;
+      --surface: #ffffff;
+      --surface-2: #fff0ed;
+      --text: #1a1a2e;
+      --muted: #5e5e72;
+      --accent: #e8344a;
+      --accent-strong: #c2185b;
+      --border: #f1e1dd;
+      --shadow: rgba(120, 20, 40, 0.12);
+      --yellow: #ffd000;
+      --green: #1faa59;
+      --orange: #f08a00;
+      --grad-red: linear-gradient(160deg, #ff5e4d 0%, #e8344a 48%, #c2185b 100%);
+      --grad-berry: linear-gradient(160deg, #f2445c 0%, #d81b60 52%, #9c1458 100%);
+      --grad-night: linear-gradient(160deg, #2b2b3d 0%, #1f1f2e 50%, #14141f 100%);
+      --radius: 22px;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #141418;
-        --surface: #1f1f25;
-        --text: #f1f1f4;
-        --muted: #a8a8b4;
-        --accent: #ff6b6b;
-        --accent-text: #141418;
-        --border: #2e2e36;
+        --bg: #121218;
+        --surface: #1b1b24;
+        --surface-2: #231f2a;
+        --text: #f3f3f7;
+        --muted: #aeaec0;
+        --accent: #ff6b77;
+        --accent-strong: #ff8fa3;
+        --border: #2c2a37;
+        --shadow: rgba(0, 0, 0, 0.45);
       }
     }
+
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: Nunito, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-weight: 600;
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
+    img { max-width: 100%; }
     a { color: var(--accent); }
-    .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px; }
-    header { padding: 20px 0; }
-    header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; color: var(--text); text-decoration: none; }
-    .brand img { width: 36px; height: 36px; border-radius: 9px; }
-    nav a { margin-left: 16px; color: var(--muted); text-decoration: none; font-size: 0.95rem; }
-    nav a:hover { color: var(--text); }
-    .hero { padding-top: 48px; padding-bottom: 40px; display: flex; align-items: center; gap: 40px; }
-    .hero-text { flex: 1 1 auto; min-width: 0; }
-    .hero-icon { flex: 0 0 auto; width: 192px; height: 192px; border-radius: 42px; box-shadow: 0 12px 32px rgba(211, 47, 47, 0.25); }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ── Buttons ─────────────────────────────────────── */
+    .btn {
+      position: relative; overflow: hidden;
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 24px; border-radius: 14px;
+      font-weight: 800; font-size: 1.02rem; text-decoration: none; line-height: 1.2;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn svg { width: 22px; height: 22px; flex: none; }
+    .btn::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+      transform: translateX(-120%); transition: transform 0.6s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:hover::after { transform: translateX(120%); }
+    .btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+    .btn-dark { background: #16161f; color: #fff; box-shadow: 0 10px 24px rgba(40, 0, 15, 0.3); }
+    .btn-light { background: #fff; color: #c2185b; box-shadow: 0 10px 24px rgba(40, 0, 15, 0.25); }
+    .btn-accent { background: var(--accent); color: #fff; padding: 9px 16px; font-size: 0.92rem; border-radius: 11px; }
+    @media (prefers-color-scheme: dark) { .btn-accent { color: #16161f; } }
+
+    /* ── Header ──────────────────────────────────────── */
+    .site-header {
+      position: fixed; inset: 0 0 auto; z-index: 50; color: #fff;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    }
+    html:not(.js) .site-header { position: absolute; }
+    .site-header.scrolled {
+      color: var(--text);
+      background: color-mix(in srgb, var(--bg) 86%, transparent);
+      -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 70px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 1.3rem; color: inherit; text-decoration: none; letter-spacing: -0.3px; }
+    .brand img { width: 38px; height: 38px; border-radius: 10px; box-shadow: 0 4px 12px rgba(40, 0, 15, 0.2); }
+    .site-nav { display: flex; align-items: center; gap: 22px; }
+    .site-nav a:not(.btn) { color: inherit; opacity: 0.88; text-decoration: none; font-weight: 800; font-size: 0.95rem; }
+    .site-nav a:not(.btn):hover { opacity: 1; text-decoration: underline; text-underline-offset: 4px; }
+    @media (max-width: 720px) { .site-nav a:not(.btn) { display: none; } }
+
+    /* ── Hero ────────────────────────────────────────── */
+    .hero { position: relative; overflow: hidden; overflow: clip; background: var(--grad-red); color: #fff; padding: 118px 0 150px; }
+    .glow { position: absolute; border-radius: 50%; pointer-events: none; }
+    .glow-a { left: -220px; bottom: -260px; width: 720px; height: 720px; background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 65%); }
+    .glow-b { right: -160px; top: -200px; width: 680px; height: 680px; background: radial-gradient(circle, rgba(255, 210, 0, 0.2), transparent 65%); }
+    .doodle { position: absolute; pointer-events: none; animation: drift var(--dur, 11s) ease-in-out var(--delay, 0s) infinite alternate; }
+    @keyframes drift {
+      from { transform: translate(0, 0) rotate(var(--rot, 0deg)); }
+      to { transform: translate(var(--dx, 10px), var(--dy, -16px)) rotate(calc(var(--rot, 0deg) + var(--spin, 12deg))); }
+    }
+    .hero-grid { position: relative; z-index: 2; display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 40px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px; margin: 0 0 22px;
+      padding: 6px 16px 6px 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.16);
+      font-weight: 800; font-size: 0.95rem;
+    }
+    .eyebrow img { width: 30px; height: 30px; border-radius: 8px; }
+    h1 {
+      font-weight: 900; font-size: clamp(2.6rem, 6.4vw, 4.6rem); line-height: 1.02; letter-spacing: -1.5px;
+      margin: 0 0 22px; text-shadow: 0 6px 24px rgba(80, 0, 20, 0.18);
+    }
+    h1 .line { display: block; }
+    .hl { color: var(--yellow); position: relative; display: inline-block; white-space: nowrap; }
+    .hl .ul { position: absolute; left: -3%; width: 106%; height: 0.36em; bottom: -0.2em; overflow: visible; }
+    .hl .ul path { stroke-dasharray: 1; stroke-dashoffset: 0; animation: draw-line 0.9s 0.95s ease-out both; }
+    @keyframes draw-line { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+    .lead { font-size: clamp(1.08rem, 1.9vw, 1.25rem); font-weight: 700; color: rgba(255, 255, 255, 0.94); max-width: 34em; margin: 0 0 30px; }
+    .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
+    .link-light { color: #fff; font-weight: 800; text-decoration: none; border-bottom: 2px solid rgba(255, 255, 255, 0.45); padding-bottom: 2px; }
+    .link-light:hover { border-color: #fff; }
+    .hero-facts { display: flex; flex-wrap: wrap; gap: 8px 10px; list-style: none; padding: 0; margin: 28px 0 0; }
+    .hero-facts li { padding: 6px 13px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.22); font-size: 0.9rem; font-weight: 800; }
+    .anim { animation: rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--d, 0) * 0.11s + 0.1s) both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+
+    /* Phones */
+    .phone {
+      --pw: 280px;
+      position: relative; width: var(--pw); padding: calc(var(--pw) * 0.034);
+      border-radius: calc(var(--pw) * 0.15);
+      background: linear-gradient(145deg, #2e2e36, #0b0b0f 45%, #1b1b22);
+      box-shadow: 0 40px 70px rgba(40, 0, 15, 0.4), 0 10px 24px rgba(0, 0, 0, 0.22), inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+    }
+    .screen { position: relative; aspect-ratio: 600 / 1339; border-radius: calc(var(--pw) * 0.12); overflow: hidden; background: #f5f5f5; }
+    .screen img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .cam {
+      position: absolute; top: 1.6%; left: 50%; width: 4.4%; aspect-ratio: 1; transform: translateX(-50%); border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, #3a3a48, #0a0a0e 60%); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+    }
+    .float { animation: float 6s ease-in-out var(--fd, 0s) infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+
+    .hero-art { position: relative; height: 660px; animation: rise 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s both; }
+    .slot { position: absolute; }
+    .slot-front { right: 34px; top: 0; z-index: 2; }
+    .slot-front .phone { --pw: 286px; }
+    .slot-back { left: 6px; top: 86px; transform: rotate(-9deg); z-index: 1; }
+    .slot-back .phone { --pw: 236px; }
+    .toast {
+      position: absolute; z-index: 3; left: -6px; top: 400px;
+      display: flex; align-items: center; gap: 10px; padding: 11px 16px 11px 12px;
+      border-radius: 16px; background: #fff; color: #1a1a2e; font-weight: 800; font-size: 0.95rem;
+      box-shadow: 0 18px 40px rgba(40, 0, 15, 0.32);
+    }
+    .toast-badge { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--green); color: #fff; font-size: 0.85rem; flex: none; }
+    .toast.close .toast-badge { background: var(--orange); }
+    .toast-pts { color: var(--green); }
+    .toast.close .toast-pts { color: var(--orange); }
+    .toast.pop { animation: pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+    @keyframes pop { from { opacity: 0; transform: translateY(12px) scale(0.9); } to { opacity: 1; transform: none; } }
+    .timer {
+      position: absolute; z-index: 3; right: -4px; top: 108px;
+      display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px;
+      background: #fff; color: #d32f2f; font-weight: 900; font-size: 1rem; font-variant-numeric: tabular-nums;
+      box-shadow: 0 14px 30px rgba(40, 0, 15, 0.3);
+    }
+    .timer svg { width: 18px; height: 18px; }
+    .sketch { position: absolute; z-index: 3; right: -26px; bottom: 36px; width: 84px; height: 84px; }
+    .sketch path { stroke-dasharray: 1; stroke-dashoffset: 0; animation: sketch 5s ease-in-out 1.4s infinite; }
+    @keyframes sketch {
+      0% { stroke-dashoffset: 1; opacity: 1; }
+      35%, 80% { stroke-dashoffset: 0; opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 0; }
+    }
+    .hero-edge { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 90px; z-index: 1; color: var(--bg); }
+
+    @media (max-width: 960px) {
+      .hero { padding-top: 104px; padding-bottom: 130px; }
+      .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 30px; }
+      .lead { margin-left: auto; margin-right: auto; }
+      .cta-row, .hero-facts { justify-content: center; }
+      .hero-art { height: 560px; width: 100%; max-width: 420px; margin: 0 auto; }
+      .slot-front { right: 6%; }
+      .slot-front .phone { --pw: 236px; }
+      .slot-back { left: 2%; top: 64px; }
+      .slot-back .phone { --pw: 190px; }
+      .toast { left: 0; top: 330px; font-size: 0.88rem; }
+      .timer { right: 0; top: 70px; }
+      .sketch { right: -6px; bottom: 30px; width: 64px; height: 64px; }
+    }
+    @media (max-width: 420px) {
+      .hero-art { height: 500px; }
+      .slot-front .phone { --pw: 208px; }
+      .slot-back .phone { --pw: 168px; }
+      .toast { top: 300px; }
+    }
+
+    /* ── Stats ───────────────────────────────────────── */
+    .stats-wrap { position: relative; z-index: 3; margin-top: -86px; }
+    .stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); margin: 0;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: 0 24px 50px var(--shadow);
+    }
+    .stats > div { display: flex; flex-direction: column-reverse; align-items: center; padding: 22px 12px; text-align: center; }
+    .stats > div + div { border-left: 1px solid var(--border); }
+    .stats dd { margin: 0; font-weight: 900; font-size: clamp(1.9rem, 4vw, 2.6rem); line-height: 1.1; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .stats dt { color: var(--muted); font-weight: 800; font-size: 0.9rem; }
     @media (max-width: 640px) {
-      .hero { flex-direction: column-reverse; align-items: flex-start; gap: 24px; padding-top: 24px; }
-      .hero-icon { width: 96px; height: 96px; border-radius: 22px; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .stats > div:nth-child(3) { border-left: 0; }
+      .stats > div:nth-child(n + 3) { border-top: 1px solid var(--border); }
     }
-    h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.15; margin: 0 0 16px; }
-    .lead { font-size: 1.15rem; color: var(--muted); max-width: 620px; margin: 0 0 28px; }
-    .button {
-      display: inline-block; padding: 12px 22px; border-radius: 10px;
-      background: var(--accent); color: var(--accent-text); font-weight: 600; text-decoration: none;
+
+    /* ── Sections ────────────────────────────────────── */
+    .section { padding: 96px 0 24px; }
+    .section-head { text-align: center; max-width: 680px; margin: 0 auto 44px; }
+    .kicker { display: inline-block; margin: 0 0 10px; color: var(--accent); font-weight: 900; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.6px; }
+    h2 { font-weight: 900; font-size: clamp(1.9rem, 4.2vw, 2.8rem); line-height: 1.1; letter-spacing: -0.8px; margin: 0 0 14px; }
+    .section-head p { color: var(--muted); font-size: 1.08rem; margin: 0; }
+    html.js .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: calc(var(--d, 0) * 0.12s); }
+    html.js .reveal.in { opacity: 1; transform: none; }
+
+    /* Modes */
+    .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .mode {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+      box-shadow: 0 14px 34px var(--shadow); transition: transform 0.35s ease, box-shadow 0.35s ease;
     }
-    .button:hover { opacity: 0.9; }
-    .note { color: var(--muted); font-size: 0.9rem; margin-top: 12px; }
-    section { padding: 32px 0; }
-    h2 { font-size: 1.5rem; margin: 0 0 16px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
-    .card h3 { margin: 0 0 6px; font-size: 1.05rem; }
-    .card p { margin: 0; color: var(--muted); }
-    ol { padding-left: 1.3em; margin: 0; }
-    ol li { margin-bottom: 8px; }
-    footer { border-top: 1px solid var(--border); margin-top: 32px; padding: 24px 0 40px; color: var(--muted); font-size: 0.9rem; }
+    .mode:hover { transform: translateY(-6px); box-shadow: 0 24px 50px var(--shadow); }
+    .mode-visual { position: relative; height: 270px; overflow: hidden; overflow: clip; display: flex; justify-content: center; }
+    .mode-visual.red { background: var(--grad-red); }
+    .mode-visual.berry { background: var(--grad-berry); }
+    .mode-visual.night { background: var(--grad-night); }
+    .mode-visual .phone { --pw: 196px; margin-top: 34px; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .mode:hover .mode-visual .phone { transform: translateY(-14px) rotate(-2deg); }
+    .mode-body { padding: 22px 24px 26px; }
+    .mode-body h3 { margin: 0 0 6px; font-weight: 900; font-size: 1.3rem; }
+    .mode-body p { margin: 0; color: var(--muted); }
+    .tag { display: inline-block; margin-bottom: 10px; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--accent); font-weight: 900; font-size: 0.78rem; letter-spacing: 0.4px; }
+    @media (max-width: 900px) { .modes { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    /* How it works */
+    .how-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: start; }
+    .how-stage { position: sticky; top: 96px; display: flex; justify-content: center; padding: 10px 0 30px; }
+    .how-stage::before {
+      content: ""; position: absolute; inset: 8% 6% 12%; border-radius: 40px; background: var(--grad-red); opacity: 0.12;
+      transform: rotate(-4deg);
+    }
+    .how-stage .phone { --pw: 300px; }
+    .how-stage .screen img { position: absolute; inset: 0; opacity: 0; transform: scale(1.04); transition: opacity 0.5s ease, transform 0.6s ease; }
+    .how-stage .screen img.active { opacity: 1; transform: none; }
+    .steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+    .step { display: flex; gap: 20px; min-height: 62vh; align-items: center; opacity: 0.4; transition: opacity 0.4s ease; }
+    .step.active { opacity: 1; }
+    .step:last-child { min-height: 46vh; }
+    .num {
+      flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px;
+      background: var(--surface-2); color: var(--accent); font-weight: 900; font-size: 1.4rem;
+      transition: background 0.4s ease, color 0.4s ease, transform 0.4s ease;
+    }
+    .step.active .num { background: var(--grad-red); color: #fff; transform: rotate(-6deg) scale(1.06); }
+    .step h3 { margin: 0 0 8px; font-weight: 900; font-size: clamp(1.4rem, 2.6vw, 1.9rem); line-height: 1.15; }
+    .step p { margin: 0; color: var(--muted); font-size: 1.06rem; }
+    .step-shot { display: none; }
+    @media (max-width: 860px) {
+      .how-grid { grid-template-columns: 1fr; gap: 0; }
+      .how-stage { display: none; }
+      .step { opacity: 1; min-height: 0; flex-wrap: wrap; padding: 22px 0 34px; }
+      .step:last-child { min-height: 0; }
+      .step > div { flex: 1 1 220px; }
+      .step-shot { display: block; margin: 20px auto 0; }
+      .step-shot.phone { --pw: 220px; flex: none; }
+      .step .num { background: var(--grad-red); color: #fff; }
+    }
+
+    /* Words */
+    .words { padding: 110px 0 30px; overflow: hidden; overflow: clip; }
+    .marquee { overflow: hidden; overflow: clip; padding: 8px 0; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+    .track { display: flex; gap: 12px; width: max-content; animation: scroll-x var(--speed, 48s) linear infinite; }
+    .marquee.reverse .track { animation-direction: reverse; }
+    .marquee:hover .track { animation-play-state: paused; }
+    @keyframes scroll-x { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .chip {
+      display: inline-flex; align-items: center; gap: 9px; padding: 10px 18px; border-radius: 999px; white-space: nowrap;
+      background: var(--surface); border: 1px solid var(--border); font-weight: 800; font-size: 1.02rem;
+      box-shadow: 0 6px 16px var(--shadow);
+    }
+    .chip::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--accent)); }
+
+    /* No account */
+    .privacy-card {
+      display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: center;
+      max-width: 860px; margin: 0 auto; padding: 34px 36px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 14px 34px var(--shadow);
+    }
+    .privacy-card .badge { display: grid; place-items: center; width: 92px; height: 92px; border-radius: 26px; background: var(--grad-berry); transform: rotate(-6deg); box-shadow: 0 14px 30px rgba(156, 20, 88, 0.3); }
+    .privacy-card .badge svg { width: 48px; height: 48px; }
+    .privacy-card h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); margin-bottom: 8px; }
+    .privacy-card p { margin: 0; color: var(--muted); font-size: 1.06rem; }
+    @media (max-width: 640px) { .privacy-card { grid-template-columns: 1fr; text-align: center; justify-items: center; padding: 28px 22px; } }
+
+    /* Final call to action */
+    .cta-band { position: relative; overflow: hidden; overflow: clip; margin-top: 100px; padding: 90px 0; background: var(--grad-red); color: #fff; text-align: center; }
+    .cta-inner { position: relative; z-index: 2; }
+    .cta-inner img { width: 88px; height: 88px; border-radius: 22px; box-shadow: 0 16px 36px rgba(40, 0, 15, 0.35); animation: float 6s ease-in-out infinite; }
+    .cta-inner h2 { margin: 22px 0 10px; }
+    .cta-inner p { margin: 0 0 28px; font-weight: 700; color: rgba(255, 255, 255, 0.92); }
+
+    footer { padding: 34px 0 44px; color: var(--muted); font-size: 0.92rem; }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; }
+    footer p { margin: 0; }
     footer a { color: var(--muted); }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      html.js .reveal { opacity: 1; transform: none; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
+  <header class="site-header">
+    <div class="wrap bar">
       <a class="brand" href="/">
-        <img src="/favicon.png" alt="" width="36" height="36">
+        <img src="/img/icon-192.png" alt="" width="38" height="38">
         Scribbly
       </a>
-      <nav>
+      <nav class="site-nav" aria-label="Main">
+        <a href="#modes">Ways to play</a>
         <a href="#how-it-works">How it works</a>
         <a href="/privacy/">Privacy</a>
+        <a class="btn btn-accent" href="https://play.google.com/store/apps/details?id=com.game.scribbly">Get the app</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <div class="wrap hero">
-      <div class="hero-text">
-        <h1>Draw it. Guess it. Win it.</h1>
-        <p class="lead">Scribbly is a real-time multiplayer drawing and guessing game for Android. One player
-          draws a secret word while everyone else races to guess it. The faster you guess, the more points you score.</p>
-        <a class="button" href="https://play.google.com/store/apps/details?id=com.game.scribbly">Get it on Google Play</a>
-        <p class="note">Free to play. Android 9 and newer.</p>
+    <section class="hero">
+      <div aria-hidden="true">
+        <div class="glow glow-a"></div>
+        <div class="glow glow-b"></div>
+        <svg class="doodle" style="left:4%;top:18%;width:74px;opacity:.18;--rot:-12deg;--dur:12s" viewBox="0 0 100 100"><path d="M50 6 L61 38 L95 38 L67 58 L78 92 L50 71 L22 92 L33 58 L5 38 L39 38 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/></svg>
+        <svg class="doodle" style="left:40%;top:12%;width:96px;opacity:.16;--rot:8deg;--dur:14s;--dx:-14px" viewBox="0 0 100 100"><path d="M5 60 C18 20 30 20 38 50 S58 80 66 45 S86 15 95 45" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/></svg>
+        <svg class="doodle" style="left:2%;bottom:22%;width:86px;opacity:.13;--dur:16s;--spin:40deg" viewBox="0 0 100 100"><path d="M50 50 m0 0 c6 -2 10 6 4 11 c-9 7 -22 -2 -19 -14 c4 -15 25 -18 34 -5 c11 16 -3 37 -22 36 c-24 -1 -34 -28 -21 -46" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/></svg>
+        <svg class="doodle" style="right:5%;top:15%;width:70px;opacity:.16;--rot:10deg;--dur:10s" viewBox="0 0 100 100"><path d="M50 5 C54 38 62 46 95 50 C62 54 54 62 50 95 C46 62 38 54 5 50 C38 46 46 38 50 5 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/></svg>
+        <svg class="doodle" style="left:46%;bottom:18%;width:64px;opacity:.14;--rot:14deg;--dur:13s;--dy:12px" viewBox="0 0 100 100"><g fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"><path d="M18 82 L26 58 L72 12 L88 28 L42 74 Z"/><path d="M62 22 L78 38"/><path d="M26 58 L42 74"/></g></svg>
+        <svg class="doodle" style="right:3%;bottom:26%;width:78px;opacity:.14;--dur:15s;--spin:-30deg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="#fff" stroke-width="7" stroke-dasharray="14 12" stroke-linecap="round"/></svg>
+        <svg class="doodle" style="left:24%;bottom:10%;width:60px;opacity:.14;--rot:-8deg;--dur:11s" viewBox="0 0 100 100"><path d="M50 88 C20 66 6 48 10 30 C14 12 38 8 50 28 C62 8 86 12 90 30 C94 48 80 66 50 88 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/></svg>
       </div>
-      <img class="hero-icon" src="/img/icon-192.png" alt="The Scribbly app icon: a smiling red character holding a pencil" width="192" height="192">
+
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow anim" style="--d:0"><img src="/img/icon-192.png" alt="" width="30" height="30">Free on Android</p>
+          <h1 class="anim" style="--d:1"><span class="line">Draw it.</span> <span class="line">Guess it.</span> <span class="hl">Win it.<svg class="ul" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 20 C60 8 120 26 180 14 S270 10 296 16" fill="none" stroke="#ffd000" stroke-width="9" stroke-linecap="round"/></svg></span></h1>
+          <p class="lead anim" style="--d:2">The real-time multiplayer drawing and guessing game. One player draws a secret word while everyone else races to guess it. The faster you guess, the more you score.</p>
+          <div class="cta-row anim" style="--d:3">
+            <a class="btn btn-dark" href="https://play.google.com/store/apps/details?id=com.game.scribbly">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>
+              Get it on Google Play
+            </a>
+            <a class="link-light" href="#how-it-works">See how it works</a>
+          </div>
+          <ul class="hero-facts anim" style="--d:4">
+            <li>Up to 8 players</li>
+            <li>Nearly 1,000 words</li>
+            <li>Plays offline too</li>
+          </ul>
+        </div>
+
+        <div class="hero-art">
+          <div class="slot slot-back">
+            <div class="phone float" style="--fd:-3s">
+              <div class="screen"><img src="/img/shots/drawing.webp" width="600" height="1339" alt="Drawing screen: a rainbow on the canvas, with the colour palette and brush sizes below."><span class="cam"></span></div>
+            </div>
+          </div>
+          <div class="slot slot-front">
+            <div class="phone float">
+              <div class="screen"><img src="/img/shots/guessing.webp" width="600" height="1339" fetchpriority="high" alt="Guessing screen: players watch a rocket being drawn and type their guesses in the chat."><span class="cam"></span></div>
+            </div>
+          </div>
+          <div class="toast pop" aria-hidden="true"><span class="toast-badge">&#10003;</span><span class="toast-text">Rohan guessed it!</span><b class="toast-pts">+342</b></div>
+          <div class="timer" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M9 2h6"/></svg>
+            <span class="timer-value">40s</span>
+          </div>
+          <svg class="sketch" viewBox="0 0 100 100" aria-hidden="true"><path pathLength="1" d="M50 6 L61 38 L95 38 L67 58 L78 92 L50 71 L22 92 L33 58 L5 38 L39 38 Z" fill="none" stroke="#ffd000" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+
+      <svg class="hero-edge" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true"><path fill="currentColor" d="M0 60 C180 20 330 90 520 58 S860 10 1040 46 S1320 84 1440 40 V90 H0 Z"/></svg>
+    </section>
+
+    <div class="wrap stats-wrap">
+      <dl class="stats reveal">
+        <div><dt>players per room</dt><dd data-count="8">8</dd></div>
+        <div><dt>seconds to draw</dt><dd data-count="80">80</dd></div>
+        <div><dt>word categories</dt><dd data-count="31">31</dd></div>
+        <div><dt>sign-ups needed</dt><dd>0</dd></div>
+      </dl>
     </div>
 
-    <section>
+    <section id="modes" class="section">
       <div class="wrap">
-        <h2>Three ways to play</h2>
-        <div class="grid">
-          <div class="card">
-            <h3>Private rooms</h3>
-            <p>Create a room and share its code with up to 7 friends. Everyone joins from their own phone, wherever they are.</p>
+        <div class="section-head reveal">
+          <p class="kicker">Three ways to play</p>
+          <h2>Friends, strangers or the Scribbly Bot</h2>
+          <p>However you like to play, a game is only a few taps away.</p>
+        </div>
+        <div class="modes">
+          <article class="mode reveal" style="--d:0">
+            <div class="mode-visual red">
+              <div class="phone"><div class="screen"><img src="/img/shots/private-room.webp" width="600" height="1339" loading="lazy" alt="A private room showing its six-letter room code and the players who have joined."><span class="cam"></span></div></div>
+            </div>
+            <div class="mode-body">
+              <span class="tag">Up to 8 players</span>
+              <h3>Private rooms</h3>
+              <p>Create a room and share its code with up to 7 friends. Everyone joins from their own phone, wherever they are.</p>
+            </div>
+          </article>
+          <article class="mode reveal" style="--d:1">
+            <div class="mode-visual berry">
+              <div class="phone"><div class="screen"><img src="/img/shots/matchmaking.webp" width="600" height="1339" loading="lazy" alt="Matchmaking screen searching for players, with one of three places filled."><span class="cam"></span></div></div>
+            </div>
+            <div class="mode-body">
+              <span class="tag">2, 3 or 4 players</span>
+              <h3>Play online</h3>
+              <p>Pick a match size and Scribbly finds opponents for you. The game starts as soon as the room fills.</p>
+            </div>
+          </article>
+          <article class="mode reveal" style="--d:2">
+            <div class="mode-visual night">
+              <div class="phone"><div class="screen"><img src="/img/shots/vs-computer.webp" width="600" height="1339" loading="lazy" alt="An offline game where the Scribbly Bot is drawing mountains."><span class="cam"></span></div></div>
+            </div>
+            <div class="mode-body">
+              <span class="tag">Works offline</span>
+              <h3>Play with the computer</h3>
+              <p>No signal? Play a full game against the Scribbly Bot, completely offline.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="section">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="kicker">How a game works</p>
+          <h2>Four steps, three rounds, one champion</h2>
+        </div>
+        <div class="how-grid">
+          <div class="how-stage" aria-hidden="true">
+            <div class="phone">
+              <div class="screen">
+                <img class="active" src="/img/shots/choose-word.webp" width="600" height="1339" alt="">
+                <img src="/img/shots/drawing.webp" width="600" height="1339" loading="lazy" alt="">
+                <img src="/img/shots/correct-guess.webp" width="600" height="1339" loading="lazy" alt="">
+                <img src="/img/shots/game-over.webp" width="600" height="1339" loading="lazy" alt="">
+                <span class="cam"></span>
+              </div>
+            </div>
           </div>
-          <div class="card">
-            <h3>Play online</h3>
-            <p>Pick a match size of 2, 3 or 4 players and Scribbly finds opponents for you. The game starts as soon as the room fills.</p>
+          <ol class="steps">
+            <li class="step active" data-step="0">
+              <span class="num">1</span>
+              <div>
+                <h3>Pick a word</h3>
+                <p>Each turn, the artist chooses one of three fresh words. No word comes up twice in the same game.</p>
+              </div>
+              <div class="phone step-shot"><div class="screen"><img src="/img/shots/choose-word.webp" width="600" height="1339" loading="lazy" alt="The Choose a Word dialog offering pizza, rainbow and ice cream."><span class="cam"></span></div></div>
+            </li>
+            <li class="step" data-step="1">
+              <span class="num">2</span>
+              <div>
+                <h3>Draw it</h3>
+                <p>You get 80 seconds, 12 colours, three brush sizes, an eraser and undo. Everyone watches your drawing appear live.</p>
+              </div>
+              <div class="phone step-shot"><div class="screen"><img src="/img/shots/drawing.webp" width="600" height="1339" loading="lazy" alt="A rainbow being drawn, with the colour palette below the canvas."><span class="cam"></span></div></div>
+            </li>
+            <li class="step" data-step="2">
+              <span class="num">3</span>
+              <div>
+                <h3>Guess fast</h3>
+                <p>Type your guesses as the picture takes shape. Letters appear as the clock runs down, and you get a nudge when you're close. The sooner you guess, the more you score, and the artist earns a bonus for every correct guess.</p>
+              </div>
+              <div class="phone step-shot"><div class="screen"><img src="/img/shots/correct-guess.webp" width="600" height="1339" loading="lazy" alt="The chat showing players guessing the word correctly and the points they earned."><span class="cam"></span></div></div>
+            </li>
+            <li class="step" data-step="3">
+              <span class="num">4</span>
+              <div>
+                <h3>Crown the champion</h3>
+                <p>Everyone takes a turn drawing each round. After three rounds, the highest score takes the trophy.</p>
+              </div>
+              <div class="phone step-shot"><div class="screen"><img src="/img/shots/game-over.webp" width="600" height="1339" loading="lazy" alt="The Game Over leaderboard with the winner at the top."><span class="cam"></span></div></div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="words">
+      <div class="wrap section-head reveal">
+        <p class="kicker">Something new every turn</p>
+        <h2>Nearly 1,000 words to draw</h2>
+        <p>Easy-to-draw words across 31 categories, from animals and food to space and mythology.</p>
+      </div>
+      <div class="marquee" aria-hidden="true">
+        <div class="track" style="--speed:52s">
+          <span class="chip" style="--c:#e8344a">dragon</span><span class="chip" style="--c:#f08a00">pizza</span><span class="chip" style="--c:#1e88e5">rocket</span><span class="chip" style="--c:#8e24aa">rainbow</span><span class="chip" style="--c:#1faa59">penguin</span><span class="chip" style="--c:#d81b60">guitar</span><span class="chip" style="--c:#00acc1">unicorn</span><span class="chip" style="--c:#f4b400">roller coaster</span><span class="chip" style="--c:#e8344a">astronaut</span><span class="chip" style="--c:#1e88e5">hot air balloon</span><span class="chip" style="--c:#f08a00">sushi</span><span class="chip" style="--c:#8e24aa">mermaid</span><span class="chip" style="--c:#1faa59">treasure chest</span><span class="chip" style="--c:#d81b60">butterfly</span><span class="chip" style="--c:#00acc1">robot</span><span class="chip" style="--c:#f4b400">ferris wheel</span><span class="chip" style="--c:#e8344a">birthday cake</span>
+          <span class="chip" style="--c:#e8344a">dragon</span><span class="chip" style="--c:#f08a00">pizza</span><span class="chip" style="--c:#1e88e5">rocket</span><span class="chip" style="--c:#8e24aa">rainbow</span><span class="chip" style="--c:#1faa59">penguin</span><span class="chip" style="--c:#d81b60">guitar</span><span class="chip" style="--c:#00acc1">unicorn</span><span class="chip" style="--c:#f4b400">roller coaster</span><span class="chip" style="--c:#e8344a">astronaut</span><span class="chip" style="--c:#1e88e5">hot air balloon</span><span class="chip" style="--c:#f08a00">sushi</span><span class="chip" style="--c:#8e24aa">mermaid</span><span class="chip" style="--c:#1faa59">treasure chest</span><span class="chip" style="--c:#d81b60">butterfly</span><span class="chip" style="--c:#00acc1">robot</span><span class="chip" style="--c:#f4b400">ferris wheel</span><span class="chip" style="--c:#e8344a">birthday cake</span>
+        </div>
+      </div>
+      <div class="marquee reverse" aria-hidden="true">
+        <div class="track" style="--speed:60s">
+          <span class="chip" style="--c:#1faa59">haunted house</span><span class="chip" style="--c:#f08a00">giraffe</span><span class="chip" style="--c:#00acc1">seahorse</span><span class="chip" style="--c:#e8344a">phoenix</span><span class="chip" style="--c:#1e88e5">firefighter</span><span class="chip" style="--c:#d81b60">volcano</span><span class="chip" style="--c:#8e24aa">snowman</span><span class="chip" style="--c:#f4b400">lighthouse</span><span class="chip" style="--c:#1faa59">octopus</span><span class="chip" style="--c:#e8344a">ice cream</span><span class="chip" style="--c:#00acc1">skateboard</span><span class="chip" style="--c:#8e24aa">castle</span><span class="chip" style="--c:#1faa59">cactus</span><span class="chip" style="--c:#f08a00">kite</span><span class="chip" style="--c:#1e88e5">whale</span><span class="chip" style="--c:#d81b60">umbrella</span><span class="chip" style="--c:#f4b400">pineapple</span><span class="chip" style="--c:#8e24aa">telescope</span>
+          <span class="chip" style="--c:#1faa59">haunted house</span><span class="chip" style="--c:#f08a00">giraffe</span><span class="chip" style="--c:#00acc1">seahorse</span><span class="chip" style="--c:#e8344a">phoenix</span><span class="chip" style="--c:#1e88e5">firefighter</span><span class="chip" style="--c:#d81b60">volcano</span><span class="chip" style="--c:#8e24aa">snowman</span><span class="chip" style="--c:#f4b400">lighthouse</span><span class="chip" style="--c:#1faa59">octopus</span><span class="chip" style="--c:#e8344a">ice cream</span><span class="chip" style="--c:#00acc1">skateboard</span><span class="chip" style="--c:#8e24aa">castle</span><span class="chip" style="--c:#1faa59">cactus</span><span class="chip" style="--c:#f08a00">kite</span><span class="chip" style="--c:#1e88e5">whale</span><span class="chip" style="--c:#d81b60">umbrella</span><span class="chip" style="--c:#f4b400">pineapple</span><span class="chip" style="--c:#8e24aa">telescope</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="privacy-card reveal">
+          <div class="badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2.5"/></svg>
           </div>
-          <div class="card">
-            <h3>Play with the computer</h3>
-            <p>No signal? Play a full game against a computer opponent, completely offline.</p>
+          <div>
+            <h2>No account needed</h2>
+            <p>Just type a name and play. Scribbly doesn't ask for an email, phone number or sign-in. Usernames, drawings and guesses are only kept while a game is running. Read the full <a href="/privacy/">privacy policy</a>.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section id="how-it-works">
-      <div class="wrap">
-        <h2>How a game works</h2>
-        <ol>
-          <li>Each turn, one player picks one of three words and has 80 seconds to draw it.</li>
-          <li>Everyone else types guesses. Letters of the word are revealed as the clock runs down, and you get a nudge when a guess is close.</li>
-          <li>Correct guesses score more the sooner they come, and the artist earns a bonus for every player who gets it.</li>
-          <li>Everyone takes a turn drawing each round. After three rounds, the highest score wins.</li>
-        </ol>
-        <p>Words come from a bank of nearly 1,000 easy-to-draw words across 31 categories, from animals and food to space and mythology, and no word repeats within a game.</p>
+    <section class="cta-band">
+      <div aria-hidden="true">
+        <svg class="doodle" style="left:6%;top:20%;width:80px;opacity:.18;--rot:-10deg;--dur:12s" viewBox="0 0 100 100"><path d="M50 6 L61 38 L95 38 L67 58 L78 92 L50 71 L22 92 L33 58 L5 38 L39 38 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/></svg>
+        <svg class="doodle" style="right:8%;top:16%;width:96px;opacity:.16;--dur:14s" viewBox="0 0 100 100"><path d="M5 60 C18 20 30 20 38 50 S58 80 66 45 S86 15 95 45" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/></svg>
+        <svg class="doodle" style="left:14%;bottom:12%;width:70px;opacity:.14;--dur:10s;--rot:12deg" viewBox="0 0 100 100"><path d="M50 5 C54 38 62 46 95 50 C62 54 54 62 50 95 C46 62 38 54 5 50 C38 46 46 38 50 5 Z" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/></svg>
+        <svg class="doodle" style="right:14%;bottom:14%;width:66px;opacity:.14;--dur:13s;--rot:16deg" viewBox="0 0 100 100"><g fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"><path d="M18 82 L26 58 L72 12 L88 28 L42 74 Z"/><path d="M62 22 L78 38"/><path d="M26 58 L42 74"/></g></svg>
       </div>
-    </section>
-
-    <section>
-      <div class="wrap">
-        <h2>No account needed</h2>
-        <p>Just type a name and play. Scribbly doesn't ask for an email, phone number or sign-in. Usernames,
-          drawings and guesses are only kept while a game is running. Read the full <a href="/privacy/">privacy policy</a>.</p>
+      <div class="wrap cta-inner reveal">
+        <img src="/img/icon-192.png" alt="" width="88" height="88">
+        <h2>Grab a friend and start drawing</h2>
+        <p>Free to play. Android 9 and newer.</p>
+        <a class="btn btn-light" href="https://play.google.com/store/apps/details?id=com.game.scribbly">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>
+          Get it on Google Play
+        </a>
       </div>
     </section>
   </main>
@@ -158,5 +588,99 @@
       <p>© 2026 Scribbly. Google Play is a trademark of Google LLC.</p>
     </div>
   </footer>
+
+  <script>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var hasIO = 'IntersectionObserver' in window;
+
+      // Header turns solid once the page scrolls past the top of the hero.
+      var header = document.querySelector('.site-header');
+      function onScroll() { header.classList.toggle('scrolled', window.scrollY > 24); }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      // Fade sections in as they scroll into view.
+      var reveals = document.querySelectorAll('.reveal');
+      if (reduce || !hasIO) {
+        reveals.forEach(function (el) { el.classList.add('in'); });
+      } else {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+          });
+        }, { rootMargin: '0px 0px -8% 0px' });
+        reveals.forEach(function (el) { io.observe(el); });
+      }
+
+      // Count the stats up from zero the first time they are seen.
+      var counters = document.querySelectorAll('[data-count]');
+      function countUp(el) {
+        var to = +el.getAttribute('data-count'), start = null;
+        function tick(t) {
+          if (start === null) start = t;
+          var p = Math.min((t - start) / 1200, 1);
+          el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+      if (!reduce && hasIO) {
+        var co = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) { countUp(e.target); co.unobserve(e.target); }
+          });
+        }, { threshold: 0.6 });
+        counters.forEach(function (el) { el.textContent = '0'; co.observe(el); });
+      }
+
+      // "How a game works": the phone shows the screen of the step in the middle of the viewport.
+      var steps = document.querySelectorAll('.step');
+      var shots = document.querySelectorAll('.how-stage img');
+      function setStep(i) {
+        steps.forEach(function (s, n) { s.classList.toggle('active', n === i); });
+        shots.forEach(function (s, n) { s.classList.toggle('active', n === i); });
+      }
+      if (hasIO) {
+        var so = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) { if (e.isIntersecting) setStep(+e.target.getAttribute('data-step')); });
+        }, { rootMargin: '-48% 0px -48% 0px' });
+        steps.forEach(function (s) { so.observe(s); });
+      }
+
+      if (reduce) return;
+
+      // Hero: chat toasts like the ones in the game, and a draw timer counting down.
+      var toast = document.querySelector('.toast');
+      var toastText = toast.querySelector('.toast-text');
+      var toastPts = toast.querySelector('.toast-pts');
+      var badge = toast.querySelector('.toast-badge');
+      var messages = [
+        { text: 'Rohan guessed it!', pts: '+342', close: false },
+        { text: 'Priya: spaceship', pts: 'Close!', close: true },
+        { text: 'Kabir guessed it!', pts: '+310', close: false },
+        { text: 'Aditi guessed it!', pts: '+285', close: false }
+      ];
+      var m = 0;
+      setInterval(function () {
+        m = (m + 1) % messages.length;
+        var msg = messages[m];
+        toastText.textContent = msg.text;
+        toastPts.textContent = msg.pts;
+        badge.textContent = msg.close ? '~' : '✓';
+        toast.classList.toggle('close', msg.close);
+        toast.classList.remove('pop');
+        void toast.offsetWidth;
+        toast.classList.add('pop');
+      }, 2800);
+
+      var timer = document.querySelector('.timer-value');
+      var seconds = 40;
+      setInterval(function () {
+        seconds = seconds > 1 ? seconds - 1 : 80;
+        timer.textContent = seconds + 's';
+      }, 1000);
+    })();
+  </script>
 </body>
 </html>
