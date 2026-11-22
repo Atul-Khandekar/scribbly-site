@@ -1,2 +1,3 @@
-# Invite links: every /r/{ROOM} serves the same page, which reads the code from the URL.
-/r/*  /r/index.html  200
+# Invite links: every /r/{ROOM} serves the invite page (the URL keeps the room code, which the page reads).
+# The target must be outside /r/, or Cloudflare rejects the rule as a loop.
+/r/*  /invite  200
