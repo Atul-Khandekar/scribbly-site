@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Join my Scribbly room!</title>
+  <meta name="description" content="You're invited to a game of Scribbly: draw a word while your friends race to guess it.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="theme-color" content="#e8344a">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Scribbly">
+  <meta property="og:title" content="Join my Scribbly room! 🎨">
+  <meta property="og:description" content="Draw it. Guess it. Win it. Tap to join the game.">
+  <meta property="og:image" content="https://playscribbly.com/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preload" href="/fonts/nunito-900.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face { font-family: Nunito; font-weight: 600; font-display: swap; src: url(/fonts/nunito-600.woff2) format("woff2"); }
+    @font-face { font-family: Nunito; font-weight: 800; font-display: swap; src: url(/fonts/nunito-800.woff2) format("woff2"); }
+    @font-face { font-family: Nunito; font-weight: 900; font-display: swap; src: url(/fonts/nunito-900.woff2) format("woff2"); }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 28px 16px;
+      background: linear-gradient(160deg, #ff5e4d 0%, #e8344a 48%, #c2185b 100%); color: #fff;
+      font-family: Nunito, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 600;
+      -webkit-font-smoothing: antialiased; text-align: center;
+    }
+    .card { width: 100%; max-width: 420px; }
+    .icon { width: 96px; height: 96px; border-radius: 24px; box-shadow: 0 16px 36px rgba(40, 0, 15, 0.35); animation: float 6s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    h1 { font-weight: 900; font-size: 2rem; line-height: 1.1; letter-spacing: -0.5px; margin: 22px 0 8px; }
+    p { margin: 0; color: rgba(255, 255, 255, 0.92); font-size: 1.05rem; }
+    .code {
+      display: inline-block; margin: 22px 0 26px; padding: 12px 22px; border-radius: 16px;
+      background: #fff; color: #c2185b; font-weight: 900; font-size: 2rem; letter-spacing: 6px;
+      box-shadow: 0 14px 30px rgba(40, 0, 15, 0.3);
+    }
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+      padding: 16px 20px; border-radius: 16px; text-decoration: none; font-weight: 900; font-size: 1.1rem;
+      transition: transform 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn svg { width: 22px; height: 22px; flex: none; }
+    .btn-dark { background: #16161f; color: #fff; box-shadow: 0 12px 26px rgba(40, 0, 15, 0.35); }
+    .btn-light { margin-top: 12px; background: rgba(255, 255, 255, 0.16); color: #fff; border: 2px solid rgba(255, 255, 255, 0.4); }
+    .steps { margin: 26px 0 0; padding: 0; list-style: none; font-size: 0.95rem; color: rgba(255, 255, 255, 0.88); }
+    .steps li + li { margin-top: 4px; }
+    .note { margin-top: 26px; font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); }
+    .note a { color: #fff; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <img class="icon" src="/img/icon-192.png" alt="Scribbly" width="96" height="96">
+    <h1 id="title">You're invited to play Scribbly!</h1>
+    <p>Draw a word while your friends race to guess it.</p>
+    <div class="code" id="code" hidden></div>
+
+    <div id="android">
+      <a class="btn btn-dark" id="play" href="https://play.google.com/store/apps/details?id=com.game.scribbly">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>
+        Get Scribbly, then join
+      </a>
+      <a class="btn btn-light" id="open" href="#" hidden>I already have Scribbly — open the room</a>
+      <ol class="steps" id="steps" hidden>
+        <li>1. Install Scribbly from Google Play (it's free).</li>
+        <li>2. Open it: you'll go straight into this room.</li>
+      </ol>
+    </div>
+
+    <p class="note" id="other" hidden>Scribbly is an Android app. Open this link on an Android phone to join, or enter the room code in the app.</p>
+    <p class="note"><a href="/">What is Scribbly?</a></p>
+  </main>
+
+  <script>
+    (function () {
+      var PLAY = 'https://play.google.com/store/apps/details?id=com.game.scribbly';
+      var match = location.pathname.match(/^\/r\/([A-Za-z0-9]{4,16})\/?$/);
+      var code = match ? match[1].toUpperCase() : null;
+      var isAndroid = /Android/i.test(navigator.userAgent);
+
+      if (code) {
+        var codeEl = document.getElementById('code');
+        codeEl.textContent = code;
+        codeEl.hidden = false;
+        document.getElementById('title').textContent = 'Join my Scribbly room!';
+        document.title = 'Join Scribbly room ' + code;
+        // Play hands this referrer to the app on its first launch, which then joins the room.
+        var playUrl = PLAY + '&referrer=' + encodeURIComponent('room=' + code);
+        document.getElementById('play').href = playUrl;
+        document.getElementById('steps').hidden = false;
+        if (isAndroid) {
+          // Opens the app if installed (and the link didn't already open it), else falls back to Play.
+          var open = document.getElementById('open');
+          open.href = 'intent://playscribbly.com/r/' + code + '#Intent;scheme=https;package=com.game.scribbly;' +
+            'S.browser_fallback_url=' + encodeURIComponent(playUrl) + ';end';
+          open.hidden = false;
+        }
+      }
+      if (!isAndroid) document.getElementById('other').hidden = false;
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+# Invite links: every /r/{ROOM} serves the same page, which reads the code from the URL.
+/r/*  /r/index.html  200

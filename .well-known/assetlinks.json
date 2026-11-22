@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.game.scribbly",
+      "sha256_cert_fingerprints": [
+        "0B:08:59:41:F1:40:22:AB:DF:9B:88:7A:62:F9:4C:DB:75:FB:63:19:F3:1C:8F:E5:A2:47:FA:36:35:DF:82:34",
+        "9C:21:BA:CB:3F:E7:F2:AA:27:43:6D:C4:34:99:A9:E3:B2:0E:0E:09:A0:FA:6B:55:E0:71:28:E2:15:92:D4:08"
+      ]
+    }
+  }
+]
